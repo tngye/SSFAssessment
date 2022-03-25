@@ -26,20 +26,20 @@ import sg.edu.nus.iss.ssfassessment.services.QuotationService;
 @RequestMapping("/api")
 public class PurchaseOrderRestController {
 
-    @Autowired 
+    @Autowired
     public QuotationService qSvc;
 
     @PostMapping("/po")
-    public ResponseEntity<String> getOrder(@RequestBody String payload) throws IOException{
+    public ResponseEntity<String> getOrder(@RequestBody String payload) throws IOException {
         JsonObject body;
-        try(InputStream is = new ByteArrayInputStream(payload.getBytes())){
+        try (InputStream is = new ByteArrayInputStream(payload.getBytes())) {
             JsonReader reader = Json.createReader(is);
             body = reader.readObject();
-        }catch(Exception ex){
+        } catch (Exception ex) {
             body = Json.createObjectBuilder().add("error", ex.getMessage()).build();
             return ResponseEntity.internalServerError().body(body.toString());
         }
-        
+
         System.out.println(">>>>>> body:" + body);
 
         String name = body.getString("name");
@@ -48,37 +48,40 @@ public class PurchaseOrderRestController {
 
         List<String> itemsName = new ArrayList<String>();
 
-        for (int i =0; i<itemsArr.size(); i++){
+        for (int i = 0; i < itemsArr.size(); i++) {
             JsonObject perItem = itemsArr.getJsonObject(i);
             itemsName.add(perItem.getString("item"));
         }
-        
+
         Optional<Quotation> quotationOpt = qSvc.getQuotations(itemsName);
-        Quotation quotation = quotationOpt.get();
+        JsonObject results = null;
+        if (quotationOpt != null) {
+            Quotation quotation = quotationOpt.get();
 
-        Float total = 0f;
-        for (int i=0; i<itemsArr.size(); i++){
-            JsonObject perItem = itemsArr.getJsonObject(i);
-            int quantity = perItem.getInt("quantity");
-            Float unit = quotation.getQuotation(perItem.getString("item"));
-            total = total + (unit * quantity);
+            Float total = 0f;
+            for (int i = 0; i < itemsArr.size(); i++) {
+                JsonObject perItem = itemsArr.getJsonObject(i);
+                int quantity = perItem.getInt("quantity");
+                Float unit = quotation.getQuotation(perItem.getString("item"));
+                total = total + (unit * quantity);
+            }
+
+            System.out.println(">>>>>> total:" + total);
+
+            results = Json.createObjectBuilder()
+                    .add("invoiceId", quotation.getQuoteId())
+                    .add("name", name)
+                    .add("total", total)
+                    .build();
         }
-       
-        System.out.println(">>>>>> total:" + total);
-
-        JsonObject results = Json.createObjectBuilder()
-        .add("invoiceId", quotation.getQuoteId())
-        .add("name", name)
-        .add("total", total)
-        .build();
-
+        
         System.out.println(">>>>>> results:" + results);
-        try{
+        try {
             return ResponseEntity.ok(results.toString());
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return ResponseEntity.ok(null);
     }
-    
+
 }
