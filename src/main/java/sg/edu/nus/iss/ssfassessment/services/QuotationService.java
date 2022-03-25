@@ -74,4 +74,25 @@ public class QuotationService {
         return Optional.empty();
     }
 
+    public JsonObject getResults(Quotation quotation, JsonArray itemsArr, String name) {
+        Float total = 0f;
+            for (int i = 0; i < itemsArr.size(); i++) {
+                JsonObject perItem = itemsArr.getJsonObject(i);
+                int quantity = perItem.getInt("quantity");
+                Float unit = quotation.getQuotation(perItem.getString("item"));
+                total = total + (unit * quantity);
+            }
+
+            System.out.println(">>>>>> total:" + total);
+
+            JsonObject results = Json.createObjectBuilder()
+                    .add("invoiceId", quotation.getQuoteId())
+                    .add("name", name)
+                    .add("total", total)
+                    .build();
+
+                    return results;
+    }
+
+
 }

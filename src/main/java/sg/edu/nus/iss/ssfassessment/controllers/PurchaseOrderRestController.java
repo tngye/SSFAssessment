@@ -55,26 +55,12 @@ public class PurchaseOrderRestController {
 
         Optional<Quotation> quotationOpt = qSvc.getQuotations(itemsName);
         JsonObject results = null;
+        
         if (quotationOpt != null) {
             Quotation quotation = quotationOpt.get();
-
-            Float total = 0f;
-            for (int i = 0; i < itemsArr.size(); i++) {
-                JsonObject perItem = itemsArr.getJsonObject(i);
-                int quantity = perItem.getInt("quantity");
-                Float unit = quotation.getQuotation(perItem.getString("item"));
-                total = total + (unit * quantity);
-            }
-
-            System.out.println(">>>>>> total:" + total);
-
-            results = Json.createObjectBuilder()
-                    .add("invoiceId", quotation.getQuoteId())
-                    .add("name", name)
-                    .add("total", total)
-                    .build();
+            results = qSvc.getResults(quotation, itemsArr, name);
         }
-        
+
         System.out.println(">>>>>> results:" + results);
         try {
             return ResponseEntity.ok(results.toString());
