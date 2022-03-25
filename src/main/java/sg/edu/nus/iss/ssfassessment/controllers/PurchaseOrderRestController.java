@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,13 +24,13 @@ import sg.edu.nus.iss.ssfassessment.model.Quotation;
 import sg.edu.nus.iss.ssfassessment.services.QuotationService;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping(path ="/api", produces=MediaType.APPLICATION_JSON_VALUE)
 public class PurchaseOrderRestController {
 
     @Autowired
     public QuotationService qSvc;
 
-    @PostMapping("/po")
+    @PostMapping(path="/po", consumes = MediaType.APPLICATION_JSON_VALUE )
     public ResponseEntity<String> getOrder(@RequestBody String payload) throws IOException {
         JsonObject body;
         try (InputStream is = new ByteArrayInputStream(payload.getBytes())) {
@@ -55,7 +56,7 @@ public class PurchaseOrderRestController {
 
         Optional<Quotation> quotationOpt = qSvc.getQuotations(itemsName);
         JsonObject results = null;
-        
+
         if (quotationOpt != null) {
             Quotation quotation = quotationOpt.get();
             results = qSvc.getResults(quotation, itemsArr, name);
